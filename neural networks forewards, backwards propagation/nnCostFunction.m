@@ -49,7 +49,7 @@ for i=1:m
 
 end
 
-J = J/m;
+J = J/m + lambda/(2*m) * regulize(Theta1, Theta2);
 
 
 
@@ -89,4 +89,10 @@ end
 function yv = transform(y, num_labels) % decimal y into array of 0,1 transform
     yv = zeros(num_labels, 1);
     yv(y) = 1;
+end
+
+function theta = regulize(theta1, theta2)
+    t1 = (theta1.*theta1)([1:end], [2:end]);
+    t2 = (theta2.*theta2)([1:end], [2:end]);
+    theta = sum(sum(t1)) + sum(sum(t2));
 end
