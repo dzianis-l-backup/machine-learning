@@ -16,34 +16,25 @@ function [J grad] = nnCostFunction(nn_params,
     Theta1_grad = zeros(size(Theta1));
     Theta2_grad = zeros(size(Theta2));
 
-
-    % Part 3: Implement regularization with the cost function and gradients.
-    %
-    %         Hint: You can implement this around the code for
-    %               backpropagation. That is, you can compute the gradients for
-    %               the regularization separately and then add them to Theta1_grad
-    %               and Theta2_grad from Part 2.
-    %
-
     X = [ones(m,1), X]; % ones added to each of the training examples as the 1 neuron
 
     for t=1:m
         a1 = X(t,:);
         a1 = a1';
 
-        [z3, a3, z2, a2] = forewards( a1, Theta1, Theta2 ); % output signals computation
+        [a3, a2] = forewards( a1, Theta1, Theta2 ); % output signals computation
         yt = transformY(y(t,1), num_labels);
         J = J + costClasses(yt, a3);
         
-        [D1, D2] = backwards( yt, a3, Theta2, z2, Theta2_grad, a2, Theta1, Theta1_grad, a1);
+        [D1, D2] = backwards( yt, a3, Theta2, Theta2_grad, a2, Theta1, Theta1_grad, a1 );
         Theta1_grad = Theta1_grad + D1;
         Theta2_grad = Theta2_grad + D2;
 
     end
 
     J = J/m + lambda/(2*m) * regulize(Theta1, Theta2);
-    Theta1_grad = 1/m * Theta1_grad;
-    Theta2_grad = 1/m * Theta2_grad;
+    Theta1_grad = 1/m * Theta1_grad + 1/m * regulizeGrad(Theta1, lambda);
+    Theta2_grad = 1/m * Theta2_grad + 1/m * regulizeGrad(Theta2, lambda);
 
     % Unroll gradients
     grad = [Theta1_grad(:) ; Theta2_grad(:)];
@@ -51,7 +42,7 @@ function [J grad] = nnCostFunction(nn_params,
 
 end
 
-function [z3, a3, z2, a2 ] = forewards(x, theta1, theta2) %output signals computation
+function [a3, a2] = forewards(x, theta1, theta2) %output signals computation
     z2 = theta1*x;
     a2 = g(z2);
     a2 = [ones(1,1); a2];
@@ -60,7 +51,7 @@ function [z3, a3, z2, a2 ] = forewards(x, theta1, theta2) %output signals comput
     a3 = g(z3);
 end
                      
-function [D1, D2] = backwards(y, a3, theta2, z2, D2, a2, theta1, D1, a1)
+function [D1, D2] = backwards(y, a3, theta2, D2, a2, theta1, D1, a1 )
     d3 = a3 - y;
 
     D2 = d3 * a2';
@@ -88,8 +79,8 @@ function yv = transformY(y, num_labels) % decimal y into array of 0,1 transform
 end
 
 function theta = regulize(theta1, theta2)
-    t1 = (theta1.*theta1)([1:end], [2:end]);
-    t2 = (theta2.*theta2)([1:end], [2:end]);
+    t1 = removeFirstColumn(theta1.*theta1);
+    t2 = removeFirstColumn(theta2.*theta2);
     theta = sum(sum(t1)) + sum(sum(t2));
 end
 
@@ -98,7 +89,7 @@ function z = zDerivative(A)
 end
 
 function A = removeFirstColumn(X)
-    A = X([1:end], [2:end]);
+    A = X(:, 2:end);
 end
                          
 function x = removeFirstElem(a)
@@ -107,4 +98,8 @@ end
 
 function s = sizeDebug(X)
     s = size(X)
+end
+
+function reg = regulizeGrad(theta, lambda)
+    reg = [ zeros( size( theta, 1 ), 1 ), lambda * removeFirstColumn(theta)  ];
 end
