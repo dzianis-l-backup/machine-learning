@@ -42,7 +42,7 @@ Theta_grad = zeros(size(Theta));
 
 % Cost Function
 D = Theta * X' - Y';
-J = 1/2 * sum ( ( D.^2 )(R' == 1) ) ;
+J = 1/2 * sum ( ( D.^2 )(R' == 1) ) + lambda/2 * sum ( sum ( Theta .* Theta ) ) + lambda/2 * sum ( sum ( X .* X ) );
 
 %gradients
 for k=1:num_features
@@ -50,7 +50,7 @@ for k=1:num_features
     ThetaX = Theta * X(i, :)';
     ThetaXY = ThetaX - Y(i,:)';
     ThetaXYTheta = ThetaXY .* Theta(:,k);
-    X_grad(i,k) = sum( ThetaXYTheta.* R(i,:)' );
+    X_grad(i,k) = sum( ThetaXYTheta.* R(i,:)' ) + lambda * X(i,k);
   endfor
 endfor
 
@@ -59,7 +59,7 @@ for k=1:num_features
     XTheta = X * Theta(j,:)';
     XThetaY = XTheta - Y(:,j);
     XThetaYX = XThetaY .* X(:,k);
-    Theta_grad(j,k) = sum( XThetaYX .* R(:,j) );
+    Theta_grad(j,k) = sum( XThetaYX .* R(:,j) ) + lambda * Theta(j,k);
   endfor
 endfor
 % =============================================================
